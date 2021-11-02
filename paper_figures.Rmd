@@ -1,0 +1,227 @@
+---
+title: "Mota & Houzel 2015 figures and anaylises"
+author: "Fernanda Hansen P. de Moraes and Victor B. B. Mello"
+date: "01/11/2021"
+output: 
+  html_document: 
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = TRUE,
+	message = FALSE,
+	warning = FALSE,
+	cache = TRUE
+)
+```
+
+```{r}
+## Define o diretorio de trabalho/Working Directory
+setwd("~/GitHub/MH2015")
+
+## Instala os pacotes necessarios - retirar os comentarios se for rodar pela primeira vez
+# install.packages("tidyverse")
+# install.packages("ggpubr")
+
+## Chama os pacotes necessarios
+library(readxl)
+library(tidyverse)
+library(ggpubr)
+
+```
+
+```{r}
+## Importa os dados
+dados_MH2015 <- read_excel("dados_Bruno_etal_Nature_UniversalScaling.xls")
+View(dados_MH2015)
+
+## Renomeia as colunas
+colnames(dados_MH2015)[3] <- "TotalArea"
+colnames(dados_MH2015)[5] <- "AvgThickness"
+
+```
+
+Precisamos calcular a área exposta a partir da área total e do Folding Index (FI ou localGI)
+
+$$
+FoldingIndex = TotalArea/ExposedArea
+$$
+
+$$
+ExposedArea=TotalArea/FoldingIndex
+$$
+
+```{r}
+## Calcular area exposta a partir da area total e do folding index (FI ou localGI)
+dados_MH2015 <- dados_MH2015 %>%
+  mutate(ExposedArea = TotalArea/FI)
+
+```
+
+# Figura 1
+
+Folding index scales across all gyrencephalic species in the combined data sets as power functions of ...
+
+## Figura 1D - total cortical area
+
+"exponent 0.257 +- 0.014"
+```{r}
+ggplot(dados_MH2015, aes(x = TotalArea, y = FI)) +
+  geom_point(aes(color = clade)) +
+  scale_x_log10() +
+  scale_y_log10() +
+  labs(x = "Total cortical surface area (mm²)", y = "Folding index") +
+  theme_minimal() +
+  stat_smooth(method = "lm", color = "black") +
+  stat_regline_equation()
+```
+
+"(r2 = 0.872, P < 0.0001)"
+```{r}
+cor <- cor.test(log10(dados_MH2015$TotalArea), log10(dados_MH2015$FI))
+cor
+paste("R2 = ", signif(cor$estimate^2, 2))
+```
+
+_provavelmente a falta dos outros dados está levando a essa diferenca_
+
+Segundo a legenda da figura: "Folding index scales across all gyrencephalic species in the combined data sets as power functions". Para ser girencefálica, a especie tem que ter FI > 1 (Area total > Area exposta que necessariamente precisa ter giros e sulcos para existir no format de um cérebro).
+
+Assim, testando se a gente usar apenas um subconjunto dos dados, com FI > 1.
+
+```{r}
+ggplot(dados_MH2015, aes(x = TotalArea, y = FI)) +
+  geom_point(aes(color = clade)) +
+  scale_x_log10() +
+  scale_y_log10() +
+  labs(x = "Total cortical surface area (mm²)", y = "Folding index") +
+  theme_minimal() +
+  stat_smooth(data = subset(dados_MH2015, FI >1), method = "lm", color = "black") +
+  # stat_smooth(method = "lm", color = "#336600", alpha = 0.4) +
+  stat_regline_equation(data = subset(dados_MH2015, FI >1))
+```
+
+Verificando o expoente com o desvio padrao ("exponent 0.257 +- 0.014"):
+```{r}
+lm <- lm(log10(FI) ~ log10(TotalArea), filter(dados_MH2015, FI > 1))
+summary(lm)
+```
+
+"(r2 = 0.872, P < 0.0001)"
+```{r}
+cor <- cor.test(log10(filter(dados_MH2015, FI > 1)$TotalArea), log10(filter(dados_MH2015, FI > 1)$FI))
+cor
+paste("R2 = ", signif(cor$estimate^2, 2))
+```
+
+_alguma coisa ainda esta errada, acho que é a falta dos outros dados_
+
+## Figura 1E - average cortical thickness
+
+"with a non significant exponent"
+```{r}
+ggplot(dados_MH2015, aes(x = AvgThickness, y = FI)) +
+  geom_point(aes(color = clade)) +
+  scale_x_log10() +
+  scale_y_log10() +
+  labs(x = "Cortical Thickness (mm)", y = "Folding index") +
+  theme_minimal() +
+  stat_smooth(data = subset(dados_MH2015, FI >1), method = "lm", color = "black") +
+  # stat_smooth(method = "lm", color = "#336600", alpha = 0.4) +
+  stat_regline_equation(data = subset(dados_MH2015, FI >1))
+```
+
+Verificando o expoente com o desvio padrao:
+```{r}
+lm <- lm(log10(FI) ~ log10(AvgThickness), filter(dados_MH2015, FI > 1))
+summary(lm)
+```
+
+"(r2 = 0.054, P = 0.1430)"
+```{r}
+cor <- cor.test(log10(filter(dados_MH2015, FI > 1)$AvgThickness), log10(filter(dados_MH2015, FI > 1)$FI))
+cor
+paste("R2 = ", signif(cor$estimate^2, 2))
+```
+
+## Figura 1F
+
+"Total cortical surface area varies across lissencephalic species as a linear function of the exposed surface area, but as a power function with an exponent of 1.242 +- 0.018 across noncetacean gyrencephalic species (r2 = 0.992, P < 0.0001)."
+
+"exponent of 1.242 +- 0.018 across **noncetacean** gyrencephalic species"
+```{r}
+ggplot(filter(dados_MH2015, clade !="Cetacea"), aes(x = ExposedArea, y = TotalArea)) +
+  geom_point(aes(color = clade)) +
+  scale_x_log10() +
+  scale_y_log10() +
+  labs(x = "Exposed cortical surface area (mm²)", y = "Total cortical surface area (mm²)", caption = "no cetaceans added") +
+  theme_minimal() +
+  stat_smooth(data = subset(dados_MH2015, FI >1), method = "lm", color = "red", fill = "red") +
+  stat_smooth(method = "lm", color = "#336600", fill = "#336600") +
+  stat_regline_equation(data = subset(dados_MH2015, FI >1))
+```
+
+Verificando o expoente com o desvio padrao:
+```{r}
+lm <- lm(log10(TotalArea) ~ log10(ExposedArea), filter(dados_MH2015, FI > 1, clade !="Cetacea"))
+summary(lm)
+```
+
+"(r2 = 0.992, P < 0.0001)"
+```{r}
+cor <- cor.test(log10(filter(dados_MH2015, FI > 1, clade !="Cetacea")$ExposedArea), log10(filter(dados_MH2015, FI > 1, clade !="Cetacea")$TotalArea))
+cor
+paste("R2 = ", signif(cor$estimate^2, 2))
+```
+
+# Figura 3
+## Figura 3A
+```{r}
+ggplot(filter(dados_MH2015), aes(x = ExposedArea, y = TotalArea*sqrt(AvgThickness))) +
+  geom_point(aes(color = clade)) +
+  scale_x_log10() +
+  scale_y_log10() +
+  labs(x = "Exposed cortical surface area (mm²)", y = "sqrt(AvgThickness) * Total cortical surface area") +
+  theme_minimal() +
+  stat_smooth(data = subset(dados_MH2015, FI >1), method = "lm", color = "red", fill = "red") +
+  stat_smooth(method = "lm", color = "#336600", fill = "#336600") +
+  stat_regline_equation(data = subset(dados_MH2015, FI >1))
+```
+
+Verificando o expoente com o desvio padrao:
+```{r}
+lm <- lm(log10(TotalArea*sqrt(AvgThickness)) ~ log10(ExposedArea), filter(dados_MH2015, FI > 1))
+summary(lm)
+```
+
+```{r}
+cor <- cor.test(log10(filter(dados_MH2015, FI > 1)$ExposedArea), log10(filter(dados_MH2015, FI > 1)$TotalArea*sqrt(filter(dados_MH2015, FI > 1)$AvgThickness)))
+cor
+paste("R2 = ", signif(cor$estimate^2, 2))
+```
+
+## Figura 3B
+```{r}
+ggplot(filter(dados_MH2015), aes(x = ExposedArea, y = AvgThickness)) +
+  geom_point(aes(color = clade)) +
+  scale_x_log10() +
+  scale_y_log10() +
+  labs(x = "Exposed cortical surface area (mm²)", y = "AvgThickness (mm)") +
+  theme_minimal() +
+  stat_smooth(data = subset(dados_MH2015, FI >1), method = "lm", color = "red", fill = "red") +
+  stat_smooth(method = "lm", color = "#336600", fill = "#336600") +
+  stat_regline_equation(data = subset(dados_MH2015, FI >1))
+```
+
+Verificando o expoente com o desvio padrao:
+```{r}
+lm <- lm(log10(AvgThickness) ~ log10(ExposedArea), filter(dados_MH2015, FI > 1))
+summary(lm)
+```
+
+```{r}
+cor <- cor.test(log10(filter(dados_MH2015, FI > 1)$ExposedArea), log10(filter(dados_MH2015, FI > 1)$AvgThickness))
+cor
+paste("R2 = ", signif(cor$estimate^2, 2))
+```
