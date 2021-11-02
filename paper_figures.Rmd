@@ -212,7 +212,21 @@ ggplot(filter(dados_MH2015), aes(x = ExposedArea, y = AvgThickness)) +
   stat_smooth(data = subset(dados_MH2015, FI >1), method = "lm", color = "red", fill = "red") +
   stat_smooth(method = "lm", color = "#336600", fill = "#336600") +
   stat_regline_equation(data = subset(dados_MH2015, FI >1))
+
 ```
+
+Cada familia separada:
+```{r}
+ggplot(filter(dados_MH2015), aes(x = ExposedArea, y = AvgThickness, color = clade, fill = clade)) +
+  geom_point() +
+  scale_x_log10() +
+  scale_y_log10() +
+  labs(x = "Exposed cortical surface area (mm²)", y = "AvgThickness (mm)") +
+  theme_minimal() +
+  stat_smooth(data = subset(dados_MH2015, FI >1), method = "lm", alpha = 0.4) +
+  stat_regline_equation(data = subset(dados_MH2015, FI >1))
+```
+
 
 Verificando o expoente com o desvio padrao:
 ```{r}
