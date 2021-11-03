@@ -5,6 +5,8 @@ date: "01/11/2021"
 output: 
   html_document: 
     toc: yes
+editor_options: 
+  chunk_output_type: inline
 ---
 
 ```{r setup, include=FALSE}
@@ -180,19 +182,44 @@ ggplot(filter(dados_MH2015), aes(x = ExposedArea, y = TotalArea*sqrt(AvgThicknes
   scale_y_log10() +
   labs(x = "Exposed cortical surface area (mm²)", y = "sqrt(AvgThickness) * Total cortical surface area") +
   theme_minimal() +
-  stat_smooth(data = subset(dados_MH2015, FI >1), method = "lm", color = "red", fill = "red") +
+  stat_smooth(data = subset(dados_MH2015), method = "lm", color = "red", fill = "red") +
   stat_smooth(method = "lm", color = "#336600", fill = "#336600") +
-  stat_regline_equation(data = subset(dados_MH2015, FI >1))
+  stat_regline_equation(data = subset(dados_MH2015))
 ```
 
 Verificando o expoente com o desvio padrao:
 ```{r}
-lm <- lm(log10(TotalArea*sqrt(AvgThickness)) ~ log10(ExposedArea), filter(dados_MH2015, FI > 1))
+lm <- lm(log10(TotalArea*sqrt(AvgThickness)) ~ log10(ExposedArea), filter(dados_MH2015))
 summary(lm)
 ```
 
 ```{r}
-cor <- cor.test(log10(filter(dados_MH2015, FI > 1)$ExposedArea), log10(filter(dados_MH2015, FI > 1)$TotalArea*sqrt(filter(dados_MH2015, FI > 1)$AvgThickness)))
+cor <- cor.test(log10(dados_MH2015$ExposedArea), log10(dados_MH2015$TotalArea*sqrt(dados_MH2015$AvgThickness)))
+cor
+paste("R2 = ", signif(cor$estimate^2, 2))
+```
+
+### Non-cetaceans
+
+```{r}
+ggplot(filter(dados_MH2015, clade != "Cetacea"), aes(x = ExposedArea, y = TotalArea*sqrt(AvgThickness))) +
+  geom_point(aes(color = clade)) +
+  scale_x_log10() +
+  scale_y_log10() +
+  labs(x = "Exposed cortical surface area (mm²)", y = "sqrt(AvgThickness) * Total cortical surface area") +
+  theme_minimal() +
+  stat_smooth(data = subset(dados_MH2015), method = "lm", color = "red", fill = "red") +
+  stat_smooth(method = "lm", color = "#336600", fill = "#336600") +
+  stat_regline_equation(data = subset(dados_MH2015))
+```
+
+```{r}
+lm <- lm(log10(TotalArea*sqrt(AvgThickness)) ~ log10(ExposedArea), filter(dados_MH2015, clade != "Cetacea"))
+summary(lm)
+```
+
+```{r}
+cor <- cor.test(log10(filter(dados_MH2015, clade != "Cetacea")$ExposedArea), log10(filter(dados_MH2015, clade != "Cetacea")$TotalArea*sqrt(filter(dados_MH2015, clade != "Cetacea")$AvgThickness)))
 cor
 paste("R2 = ", signif(cor$estimate^2, 2))
 ```
@@ -205,9 +232,9 @@ ggplot(filter(dados_MH2015), aes(x = ExposedArea, y = AvgThickness)) +
   scale_y_log10() +
   labs(x = "Exposed cortical surface area (mm²)", y = "AvgThickness (mm)") +
   theme_minimal() +
-  stat_smooth(data = subset(dados_MH2015, FI >1), method = "lm", color = "red", fill = "red") +
+  stat_smooth(method = "lm", color = "red", fill = "red") +
   stat_smooth(method = "lm", color = "#336600", fill = "#336600") +
-  stat_regline_equation(data = subset(dados_MH2015, FI >1))
+  stat_regline_equation()
 
 ```
 
@@ -219,8 +246,8 @@ ggplot(filter(dados_MH2015), aes(x = ExposedArea, y = AvgThickness, color = clad
   scale_y_log10() +
   labs(x = "Exposed cortical surface area (mm²)", y = "AvgThickness (mm)") +
   theme_minimal() +
-  stat_smooth(data = subset(dados_MH2015, FI >1), method = "lm", alpha = 0.4) +
-  stat_regline_equation(data = subset(dados_MH2015, FI >1))
+  stat_smooth(method = "lm", alpha = 0.4) +
+  stat_regline_equation()
 ```
 
 
