@@ -1,0 +1,125 @@
+---
+title: "Mota & Houzel 2015 figures and anaylises"
+author: "Fernanda Hansen P. de Moraes and Victor B. B. Mello"
+date: "01/11/2021"
+output: 
+  html_document: 
+    toc: yes
+editor_options: 
+  chunk_output_type: inline
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = TRUE,
+	message = FALSE,
+	warning = FALSE,
+	cache = TRUE
+)
+```
+
+```{r}
+## Define o diretorio de trabalho/Working Directory
+setwd("~/GitHub/MH2015")
+```
+
+```{python}
+## Chama os pacotes
+import pandas as pd
+import numpy as np
+
+dados_MH2015 = pd.read_excel('/content/drive/My Drive/MetaBIO/Discussão_IC/Tópico 1 - Universalidade da girificação/dados_Bruno_etal_Nature_UniversalScaling.xls')
+dados_MH2015
+```
+
+# Índice de girificação pela espessura cortical
+
+```{python}
+import seaborn as sns
+sns.scatterplot(x = 'T (mm)', y = 'FI', hue = 'clade', data = data)
+```
+
+# Índice de girificação pela área total
+
+```{python}
+figplot = sns.scatterplot(x = 'At (mm²)', y = 'FI', hue = 'clade', data = data)
+figplot.set(xscale="log")
+```
+
+# Índice de girificação pela área exposta
+
+```{python}
+data['Ae (mm²)'] = data['At (mm²)']/data['FI']
+
+figplot = sns.scatterplot(x = 'Ae (mm²)', y = 'FI', hue = 'clade', data = data)
+figplot.set(xscale="log")
+```
+
+# Análise: lei de escala universal
+
+```{python}
+data['x'] = np.log10(data['Ae (mm²)'])
+data['y'] = np.log10(data['At (mm²)'] * np.sqrt(data['T (mm)']) )
+
+data.dropna(inplace=True)
+
+figplot = sns.scatterplot(x = 'x', y = 'y', hue = 'clade', data = data)
+figplot.set_xlabel('log(Ae)')
+figplot.set_ylabel(r'log( At $\sqrt{T}$)')
+```
+
+```{python}
+from scipy import stats
+
+x = data['x'].to_numpy()
+y = data['y'].to_numpy()
+
+res = stats.linregress(x, y)
+
+print('alpha = ', res.slope, "+-", res.stderr)
+print('beta = ', res.intercept)
+print('r² = ', res.rvalue)
+print('p-value = ', res.pvalue)
+```
+
+```{python}
+import matplotlib.pyplot as plt
+plt.plot(x, y, 'o', label='Dados')
+plt.plot(x, res.intercept + res.slope*x, 'r', label='Ajuste Linear')
+plt.xlabel('log(Ae)')
+plt.ylabel(r'log(At $\sqrt{T}$)')
+plt.legend()
+plt.show()
+```
+
+## EXTRA: Uma simulação! Efeito sistemático na medida da área total do córtex pode afetar o valor de  α
+
+```{python}
+xsim = np.linspace(1,max(x),len(x))
+ysim = np.random.normal(1.25*xsim + res.intercept, 0.08) + (1.25*xsim + res.intercept)*0.05
+ressim = stats.linregress(xsim, ysim)
+
+print('alpha = ', ressim.slope, "+-", ressim.stderr)
+print('beta = ', ressim.intercept)
+print('r² = ', ressim.rvalue)
+print('p-value = ', ressim.pvalue)
+
+plt.plot(xsim, ysim, 'o', label='Dados')
+plt.plot(xsim, ressim.intercept + ressim.slope*xsim, 'r', label='Ajuste Linear')
+plt.xlabel('log(Ae)')
+plt.ylabel(r'log(At $\sqrt{T}$)')
+plt.legend()
+plt.show()
+```
+
+## EXTRA: Os valores medidos de log(K) para a toninha e 2 sotalias, são compatíveis com a distribuição esperada?
+
+Toninha = -0.23
+Sotália g = -0.41
+Sotália f = -0.38
+
+```{python}
+data['K'] = 0.5*np.log10(data["T (mm)"]) + np.log10(data["At (mm²)"])-1.25*np.log10(data["Ae (mm²)"])
+sns.displot(x = 'K', data = data)
+```
+
