@@ -206,12 +206,7 @@ View(dados_MH2015)
 colnames(dados_MH2015)[3] &lt;- &quot;TotalArea&quot;
 colnames(dados_MH2015)[5] &lt;- &quot;AvgThickness&quot;</code></pre>
 <p>Precisamos calcular a área exposta a partir da área total e do Folding Index (FI ou localGI)</p>
-<p><span class="math display">\[
-FoldingIndex = TotalArea/ExposedArea
-\]</span></p>
-<p><span class="math display">\[
-ExposedArea=TotalArea/FoldingIndex
-\]</span></p>
+<p><span class="math display">\[FoldingIndex = TotalArea/ExposedArea\]</span> <span class="math display">\[\therefore\]</span> <span class="math display">\[ExposedArea=TotalArea/FoldingIndex\]</span></p>
 <pre class="r"><code>## Calcular area exposta a partir da area total e do folding index (FI ou localGI)
 dados_MH2015 &lt;- dados_MH2015 %&gt;%
   mutate(ExposedArea = TotalArea/FI)</code></pre>
