@@ -21,14 +21,25 @@ knitr::opts_chunk$set(
 ```{r}
 ## Define o diretorio de trabalho/Working Directory
 setwd("~/GitHub/MH2015")
+
+# install.packages("hexbin")
+```
+
+```{r}
+## Pacotes para usar python no Rmarkdown
+
+# install.packages("reticulate")
+library(reticulate)
+library(readxl)
+
+use_python("/usr/local/bin/python")
 ```
 
 ```{python}
 ## Chama os pacotes
 import pandas as pd
 import numpy as np
-
-dados_MH2015 = pd.read_excel('/content/drive/My Drive/MetaBIO/Discussão_IC/Tópico 1 - Universalidade da girificação/dados_Bruno_etal_Nature_UniversalScaling.xls')
+dados_MH2015 = pd.read_excel('dados_Bruno_etal_Nature_UniversalScaling.xls')
 dados_MH2015
 ```
 
@@ -36,34 +47,34 @@ dados_MH2015
 
 ```{python}
 import seaborn as sns
-sns.scatterplot(x = 'T (mm)', y = 'FI', hue = 'clade', data = data)
+sns.scatterplot(x = 'T (mm)', y = 'FI', hue = 'clade', data = dados_MH2015)
 ```
 
 # Índice de girificação pela área total
 
 ```{python}
-figplot = sns.scatterplot(x = 'At (mm²)', y = 'FI', hue = 'clade', data = data)
+figplot = sns.scatterplot(x = 'At (mm²)', y = 'FI', hue = 'clade', data = dados_MH2015)
 figplot.set(xscale="log")
 ```
 
 # Índice de girificação pela área exposta
 
 ```{python}
-data['Ae (mm²)'] = data['At (mm²)']/data['FI']
+dados_MH2015['Ae (mm²)'] = dados_MH2015['At (mm²)']/dados_MH2015['FI']
 
-figplot = sns.scatterplot(x = 'Ae (mm²)', y = 'FI', hue = 'clade', data = data)
+figplot = sns.scatterplot(x = 'Ae (mm²)', y = 'FI', hue = 'clade', data = dados_MH2015)
 figplot.set(xscale="log")
 ```
 
 # Análise: lei de escala universal
 
 ```{python}
-data['x'] = np.log10(data['Ae (mm²)'])
-data['y'] = np.log10(data['At (mm²)'] * np.sqrt(data['T (mm)']) )
+dados_MH2015['x'] = np.log10(dados_MH2015['Ae (mm²)'])
+dados_MH2015['y'] = np.log10(dados_MH2015['At (mm²)'] * np.sqrt(dados_MH2015['T (mm)']) )
 
-data.dropna(inplace=True)
+dados_MH2015.dropna(inplace=True)
 
-figplot = sns.scatterplot(x = 'x', y = 'y', hue = 'clade', data = data)
+figplot = sns.scatterplot(x = 'x', y = 'y', hue = 'clade', data = dados_MH2015)
 figplot.set_xlabel('log(Ae)')
 figplot.set_ylabel(r'log( At $\sqrt{T}$)')
 ```
@@ -71,8 +82,8 @@ figplot.set_ylabel(r'log( At $\sqrt{T}$)')
 ```{python}
 from scipy import stats
 
-x = data['x'].to_numpy()
-y = data['y'].to_numpy()
+x = dados_MH2015['x'].to_numpy()
+y = dados_MH2015['y'].to_numpy()
 
 res = stats.linregress(x, y)
 
@@ -119,7 +130,6 @@ Sotália g = -0.41
 Sotália f = -0.38
 
 ```{python}
-data['K'] = 0.5*np.log10(data["T (mm)"]) + np.log10(data["At (mm²)"])-1.25*np.log10(data["Ae (mm²)"])
-sns.displot(x = 'K', data = data)
+dados_MH2015['K'] = 0.5*np.log10(dados_MH2015["T (mm)"]) + np.log10(dados_MH2015["At (mm²)"])-1.25*np.log10(dados_MH2015["Ae (mm²)"])
+sns.displot(x = 'K', data = dados_MH2015)
 ```
-

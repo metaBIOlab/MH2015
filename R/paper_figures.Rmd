@@ -20,7 +20,7 @@ knitr::opts_chunk$set(
 
 ```{r}
 ## Define o diretorio de trabalho/Working Directory
-setwd("~/GitHub/MH2015")
+setwd("~/GitHub/MH2015/R")
 
 ## Instala os pacotes necessarios - retirar os comentarios se for rodar pela primeira vez
 # install.packages("tidyverse")
@@ -35,7 +35,7 @@ library(ggpubr)
 
 ```{r}
 ## Importa os dados
-dados_MH2015 <- read_excel("dados_Bruno_etal_Nature_UniversalScaling.xls")
+dados_MH2015 <- read_excel("~/GitHub/MH2015/dados_Bruno_etal_Nature_UniversalScaling.xls")
 View(dados_MH2015)
 
 ## Renomeia as colunas
