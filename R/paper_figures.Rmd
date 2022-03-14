@@ -30,6 +30,7 @@ setwd("~/GitHub/MH2015/R")
 library(readxl)
 library(tidyverse)
 library(ggpubr)
+library(lme4)
 
 ```
 
@@ -250,7 +251,6 @@ ggplot(filter(dados_MH2015), aes(x = ExposedArea, y = AvgThickness, color = clad
   stat_regline_equation()
 ```
 
-
 Verificando o expoente com o desvio padrao:
 ```{r}
 lm <- lm(log10(AvgThickness) ~ log10(ExposedArea), filter(dados_MH2015, FI > 1))
@@ -262,3 +262,16 @@ cor <- cor.test(log10(filter(dados_MH2015, FI > 1)$ExposedArea), log10(filter(da
 cor
 paste("R2 = ", signif(cor$estimate^2, 2))
 ```
+
+# Teste LMM
+```{r}
+m.0 <- lmer(1/AvgThickness ~ FI*clade + (1|clade), data = dados_MH2015)
+summary(m.0)
+
+ggplot(dados_MH2015, aes(y = 1/AvgThickness, x = FI, color = clade, fill = clade, alpha = 0.3)) +
+  geom_point()+
+  geom_smooth(method = "lm") +
+  theme_pubr()
+
+```
+
